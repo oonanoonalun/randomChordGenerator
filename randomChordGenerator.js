@@ -20,16 +20,18 @@
 var METRONOMIC_INTERVALS = "display the list's items at metronomic intervals";
 var LIST_WITH_SPACES = 'display the list with spaces between the items';
 var BUTTON_PRESS_INCREMENTS_LIST = 'pressing the space bar displays the next item in the list'; // needs HTML
-var BUTTON_PRESS_RANDOM_ITEM = 'pressing the space bar displays a random item from the list'; // needs HTML
+var BUTTON_PRESS_RANDOM_ITEMS = 'pressing the space bar displays a random item from the list'; // needs HTML
 var SPACE_BAR = 32;
 
 var frameRate,
-    mode = LIST_WITH_SPACES,
+    mode = BUTTON_PRESS_RANDOM_ITEMS,
     frameCounter = 1,
     subdivisionsPerMeasure = 2,
     measuresPerChord = 2,
+    blankLines = subdivisionsPerMeasure * measuresPerChord - 1,
     bpm = 37,
     chordCounter = 1,
+    itemsToDisplayPerButtonPress = 4,
     noKeyPressUntil = Date.now(),
     randomizedChordsList,
     incrementalIndex = 0, // used for BUTTON_PRESS_INCREMENT_LIST mode. Should probably be an object property instead of a global var.
@@ -53,27 +55,36 @@ currentList = randomizedChordsList;
 
 if (mode === METRONOMIC_INTERVALS) frameRate = setInterval(mainLoop, bpmToMs(bpm));
 
-if (mode === LIST_WITH_SPACES) displayListWithBlankLinesBetweenItems(randomizedChordsList, subdivisionsPerMeasure * measuresPerChord - 1);
+if (mode === LIST_WITH_SPACES) displayListWithBlankLinesBetweenItems(randomizedChordsList, blankLines);
 
 // ONLY WORKS IN BROWSER
-/*if (mode === BUTTON_PRESS_INCREMENTS_LIST || mode === BUTTON_PRESS_RANDOM_ITEM) {
+if (mode === BUTTON_PRESS_INCREMENTS_LIST || mode === BUTTON_PRESS_RANDOM_ITEMS) {
+    var validInputs = [SPACE_BAR];
     if (noKeyPressUntil <= Date.now()) {
         $('body').on('keydown', function (event) {
-            if (event.which == SPACE_BAR && mode === BUTTON_PRESS_INCREMENTS_LIST) {
-                if (!currentList) console.log('Empty or invalid list!');
-                else console.log(currentList[incrementalIndex]);
-                incrementalIndex++;
-                noKeyPressUntil = Date.now() + 200; // just making sure the key press doesn't trigger multiple events
-            }
-            if (event.which == SPACE_BAR && mode === BUTTON_PRESS_RANDOM_ITEM) {
-                if (!currentList) console.log('Empty or invalid list!');
-                var randomIndex = Math.round(Math.random() * (currentList.length - 1));
-                console.log(currentList[randomIndex]);
+            var listToDisplay = [];
+            if (validInputs.indexOf(event.which) === -1) console.log('Invalid input!');
+            else {
+                if (event.which == SPACE_BAR && mode === BUTTON_PRESS_INCREMENTS_LIST) {
+                    if (!currentList) console.log('Empty or invalid list!');
+                    else for (var i = 0; i < itemsToDisplayPerButtonPress; i++) {
+                        listToDisplay.push(currentList[incrementalIndex + i]);
+                    }
+                    incrementalIndex += itemsToDisplayPerButtonPress;
+                }
+                if (event.which == SPACE_BAR && mode === BUTTON_PRESS_RANDOM_ITEMS) {
+                    if (!currentList) console.log('Empty or invalid list!');
+                    else for (var j = 0; j < itemsToDisplayPerButtonPress; j++) {
+                        var randomIndex = Math.round(Math.random() * (currentList.length - 1));
+                        listToDisplay.push(currentList[randomIndex]);
+                    }
+                }
+                displayListWithBlankLinesBetweenItems(listToDisplay, blankLines);
                 noKeyPressUntil = Date.now() + 200; // just making sure the key press doesn't trigger multiple events
             }
         });
     }
-}*/
+}
 
 // END MODES BEHAVIOR
 
