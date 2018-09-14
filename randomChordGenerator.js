@@ -23,13 +23,14 @@ var BUTTON_PRESS_INCREMENTS_LIST = 'pressing the space bar displays the next ite
 var BUTTON_PRESS_RANDOM_ITEMS = 'pressing the space bar displays a random item from the list'; // needs HTML
 var FORM = "scroll procedurally generated forms";
 var SPACE_BAR = 32;
-var bTriads = false; // boolean var. If "true," list generated is triads rather than modal suggestions.
 
 // maybe make these vars properties of an object called "values" or something in order to make them private?
 var frameRate,
     mode = BUTTON_PRESS_RANDOM_ITEMS,
     //mode = METRONOMIC_INTERVALS,
     //mode = FORM, // WRONG: Form mode doesn't really work
+    //bTriads = true,
+    bTriads = false,
     formModeRepeats = 2,
     formModeChoruses = 50,
     frameCounter = 1,
@@ -295,15 +296,26 @@ function make7sus2ChordQualitiesList() {
 function makeRandomTriadsList() {
     var qualities = [
         'Maj',
+        'Maj/3',
+        'Maj/5',
         'min',
+        'min/3',
+        'min/5',
         'aug',
+        'aug/3',
+        'aug/5',
         'dim',
+        'dim/3',
+        'dim/5',
         'sus',
-        'sus2'
+        'sus/4',
+        'sus/5',
+        'sus2',
+        'sus2/2',
+        'sus2/5'
     ];
     var roots = makeRootsList();
     var chords = [];
-    var chordsPlusInversions = [];
     for (var i = 0; i < roots.length; i++) {
         for (var k = 0; k < qualities.length; k++) {
             chords.push(
@@ -311,15 +323,7 @@ function makeRandomTriadsList() {
             );
         }
     }
-    for (var m = 0; m < chords.length; m++) {
-        var chord = chords[m];
-        for (var n = 0; n < qualities.length; n++) {
-            if (m % 3 === 0) chordsPlusInversions.push(chord);
-            if (m % 3 === 1) chordsPlusInversions.push(chord + ' 1st inv.');
-            if (m % 3 === 2) chordsPlusInversions.push(chord + ' 2nd inv.');
-        }
-    }
-    return randomizeOrderOfArrayItems(chordsPlusInversions);
+    return randomizeOrderOfArrayItems(chords);
 }
 
 function makeRootsList() {
