@@ -21,17 +21,24 @@ var METRONOMIC_INTERVALS = "display the list's items at metronomic intervals";
 var LIST_WITH_SPACES = 'display the list with spaces between the items';
 var BUTTON_PRESS_INCREMENTS_LIST = 'pressing the space bar displays the next item in the list'; // needs HTML
 var BUTTON_PRESS_RANDOM_ITEMS = 'pressing the space bar displays a random item from the list'; // needs HTML
+var FORM = "scroll procedurally generated forms";
 var SPACE_BAR = 32;
+var bTriads = false; // boolean var. If "true," list generated is triads rather than modal suggestions.
 
+// maybe make these vars properties of an object called "values" or something in order to make them private?
 var frameRate,
     mode = BUTTON_PRESS_RANDOM_ITEMS,
+    //mode = METRONOMIC_INTERVALS,
+    //mode = FORM, // WRONG: Form mode doesn't really work
+    formModeRepeats = 2,
+    formModeChoruses = 50,
     frameCounter = 1,
-    subdivisionsPerMeasure = 2,
+    subdivisionsPerMeasure = 1,
     measuresPerChord = 2,
     blankLines = subdivisionsPerMeasure * measuresPerChord - 1,
-    bpm = 37,
+    bpm = 145,
     chordCounter = 1,
-    itemsToDisplayPerButtonPress = 4,
+    itemsToDisplayPerButtonPress = 12,
     noKeyPressUntil = Date.now(),
     randomizedChordsList,
     incrementalIndex = 0, // used for BUTTON_PRESS_INCREMENT_LIST mode. Should probably be an object property instead of a global var.
@@ -40,7 +47,8 @@ var frameRate,
 
 //randomizedChordsList = makeRandomizedChordsList(['mm', 'hmin', /*'church',*/  'hMaj', 'oct', '7sus4', /*'whol',*/ 'Maj7sus2', '7sus2'/*, 'hex'*/]);    //valid entries are: 'mm', 'hmin', 'hMaj', 'church', '7sus4', 'oct', 'hex', 'whol', 'Maj7sus2', '7sus2'
 //randomizedChordsList = makeRandomizedChordsList(['mm', 'hmin', 'hMaj', 'oct']);
-randomizedChordsList = makeRandomizedChordsList(['mm', 'hmin', 'hMaj', 'oct', 'church']);
+if (!bTriads) randomizedChordsList = makeRandomizedChordsList(['mm', 'hmin', 'hMaj', 'oct', 'church']);
+else randomizedChordsList = makeRandomTriadsList();
 currentList = randomizedChordsList;
 
 // these three lines below here were just to make sure that the randomizing process wasn't changing the lenght of the array, which happened in another program I made that used similar code and had that problem
@@ -56,6 +64,92 @@ currentList = randomizedChordsList;
 if (mode === METRONOMIC_INTERVALS) frameRate = setInterval(mainLoop, bpmToMs(bpm));
 
 if (mode === LIST_WITH_SPACES) displayListWithBlankLinesBetweenItems(randomizedChordsList, blankLines);
+
+
+//NONE OF THIS FORM STUFF IS REALLY WORKING:
+///////////////////////////////////////////////
+// FORM STUFF
+// WRONG
+if (mode === FORM) {
+    generateFormStyle4a4b4a4b2c2d3e1f();
+    frameRate = setInterval(playFormStyle4a4b4a4b2c2d3e1f, bpmToMs(bpm));
+}
+
+function generateFormStyle4a4b4a4b2c2d3e1f() {
+    var formChordsInOrder = [],
+        distinctChordsPerChorus = 6;
+    for (var k = 0; k < formModeChoruses; k++) {
+        for (var i = 0; i < formModeRepeats; i++) {
+            formChordsInOrder.push(
+                currentList[i + k * distinctChordsPerChorus + 0],
+                currentList[i + k * distinctChordsPerChorus + 1],
+                currentList[i + k * distinctChordsPerChorus + 0],
+                currentList[i + k * distinctChordsPerChorus + 1],
+                currentList[i + k * distinctChordsPerChorus + 2],
+                currentList[i + k * distinctChordsPerChorus + 3],
+                currentList[i + k * distinctChordsPerChorus + 4],
+                currentList[i + k * distinctChordsPerChorus + 5]
+            );
+        }
+    }
+    currentList = formChordsInOrder;
+}
+
+function playFormStyle4a4b4a4b2c2d3e1f() {
+    // WRONG below here is taken from mainLoop. needs to be updated to work
+    if ((frameCounter - 1) % (subdivisionsPerMeasure * measuresPerChord) === 0) {
+        console.log(currentList[chordCounter - 1] + ' ' + chordCounter);
+        chordCounter++;
+    }
+    if ((frameCounter - 1) % (subdivisionsPerMeasure * measuresPerChord) !== 0 && (frameCounter - 1) % subdivisionsPerMeasure === 0) {
+        console.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX');
+    }
+    if ((frameCounter - 1) % (subdivisionsPerMeasure * measuresPerChord) !== 0 && (frameCounter - 1) % subdivisionsPerMeasure !== 0) {
+        console.log('--------------------------------');
+    }
+    if (chordCounter > currentList.length) {
+        //this limits how long the program will run
+        clearInterval(frameRate);
+    }
+    frameCounter++;
+}
+// END FORM STUFF
+////////////////////////////////////////////
+
+// Metronomic reading out of chord list version of main loop
+// NOTE: This loop is called from the "frameRate" global var, which might be temporarily commented out in order to display the chord list differently.
+function mainLoop() {
+    //this will read out items of an array at regular intervals, stopping when the list has been displayed completely.
+    //X's will show up at the beginning of every measure that doesn't start with a new chord,
+    //      and "-"s will show up every beat that contains neither a new chord nor the beginning of a measure.
+    if ((frameCounter - 1) % (subdivisionsPerMeasure * measuresPerChord) === 0) {
+        console.log(randomizedChordsList[chordCounter - 1] + ' ' + chordCounter);
+        chordCounter++;
+    }
+    if ((frameCounter - 1) % (subdivisionsPerMeasure * measuresPerChord) !== 0 && (frameCounter - 1) % subdivisionsPerMeasure === 0) {
+        console.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX');
+    }
+    if ((frameCounter - 1) % (subdivisionsPerMeasure * measuresPerChord) !== 0 && (frameCounter - 1) % subdivisionsPerMeasure !== 0) {
+        console.log('--------------------------------');
+    }
+    if (chordCounter > randomizedChordsList.length) {
+        //this limits how long the program will run
+        clearInterval(frameRate);
+    }
+    frameCounter++;
+}
+
+function displayListWithBlankLinesBetweenItems(list, numberOfBlankLinesBetweenItems) {
+    var spacedList = [],
+        lines = numberOfBlankLinesBetweenItems;
+    for (var i = 0; i < list.length; i++) {
+        spacedList.push(list[i]);
+        for (var j = 0; j < lines; j++) {
+            spacedList.push('                                                ');
+        }
+    }
+    console.log(spacedList);
+}
 
 // ONLY WORKS IN BROWSER
 if (mode === BUTTON_PRESS_INCREMENTS_LIST || mode === BUTTON_PRESS_RANDOM_ITEMS) {
@@ -198,7 +292,35 @@ function make7sus2ChordQualitiesList() {
     return ['7sus2 #11'];
 }
 
-//for 6 chords should I look all the 7 qualities with a natural 6 and include them as 6 chords? That might not get all possibilities...
+function makeRandomTriadsList() {
+    var qualities = [
+        'Maj',
+        'min',
+        'aug',
+        'dim',
+        'sus',
+        'sus2'
+    ];
+    var roots = makeRootsList();
+    var chords = [];
+    var chordsPlusInversions = [];
+    for (var i = 0; i < roots.length; i++) {
+        for (var k = 0; k < qualities.length; k++) {
+            chords.push(
+                roots[i] + ' ' + qualities[k]
+            );
+        }
+    }
+    for (var m = 0; m < chords.length; m++) {
+        var chord = chords[m];
+        for (var n = 0; n < qualities.length; n++) {
+            if (m % 3 === 0) chordsPlusInversions.push(chord);
+            if (m % 3 === 1) chordsPlusInversions.push(chord + ' 1st inv.');
+            if (m % 3 === 2) chordsPlusInversions.push(chord + ' 2nd inv.');
+        }
+    }
+    return randomizeOrderOfArrayItems(chordsPlusInversions);
+}
 
 function makeRootsList() {
     return ['C/B#', 'Db/C#', 'D', 'Eb/D#', 'Fb/E', 'F/E#', 'Gb/F#', 'G', 'Ab/G#', 'A', 'Bb/A#', 'Cb/B'];
@@ -232,42 +354,6 @@ function randomizeOrderOfArrayItems(array) {
 }
 
 /////////////////////////////////////////////////
-
-// Metronomic reading out of chord list version of main loop
-// NOTE: This loop is called from the "frameRate" global var, which might be temporarily commented out in order to display the chord list differently.
-function mainLoop() {
-    //this will read out items of an array at regular intervals, stopping when the list has been displayed completely.
-    //X's will show up at the beginning of every measure that doesn't start with a new chord,
-    //      and "-"s will show up every beat that contains neither a new chord nor the beginning of a measure.
-    if ((frameCounter - 1) % (subdivisionsPerMeasure * measuresPerChord) === 0) {
-        console.log(randomizedChordsList[chordCounter - 1] + ' ' + chordCounter);
-        chordCounter++;
-    }
-    if ((frameCounter - 1) % (subdivisionsPerMeasure * measuresPerChord) !== 0 && (frameCounter - 1) % subdivisionsPerMeasure === 0) {
-        console.log('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX');
-    }
-    if ((frameCounter - 1) % (subdivisionsPerMeasure * measuresPerChord) !== 0 && (frameCounter - 1) % subdivisionsPerMeasure !== 0) {
-        console.log('--------------------------------');
-    }
-    if (chordCounter > randomizedChordsList.length) {
-        //this limits how long the program will run
-        clearInterval(frameRate);
-    }
-    frameCounter++;
-}
-
-function displayListWithBlankLinesBetweenItems(list, numberOfBlankLinesBetweenItems) {
-    var spacedList = [],
-        lines = numberOfBlankLinesBetweenItems;
-    for (var i = 0; i < list.length; i++) {
-        spacedList.push(list[i]);
-        for (var j = 0; j < lines; j++) {
-            spacedList.push('                                                ');
-        }
-    }
-    console.log(spacedList);
-}
-
 ////////////////////////////////////////////
 //NOTES/IDEAS FOR MORE FUNCTIONALITIES:
 
