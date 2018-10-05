@@ -8,8 +8,6 @@
 
 ////////////////////////////
 //GLOBAL VARS & INITIALIZATION
-//All global vars are used *ONLY* by the mainLoop (NOTE: this may no longer be true). If I can get them passed to mainLoop,
-//      then it won't mess anything up to make them no longer global.
 //I'd like to pass all the global vars used by mainLoop to mainLoop as arguments
 //      (so that they're private), but the only place from where I know how to do that is in the
 //      setInterval command in the "frameRate" global var, but that doesn't seem to work.
@@ -18,6 +16,7 @@
 //          particular implementation I used here, which I read about pretty much verbatim.
 
 var METRONOMIC_INTERVALS = "display the list's items at metronomic intervals";
+// WRONG?: Should add a mode that display a page (group of items) at a time, then refreshes with a new page after an interval?
 var LIST_WITH_SPACES = 'display the list with spaces between the items';
 var BUTTON_PRESS_INCREMENTS_LIST = 'pressing the space bar displays the next item in the list'; // needs HTML
 var BUTTON_PRESS_RANDOM_ITEMS = 'pressing the space bar displays a random item from the list'; // needs HTML
@@ -33,7 +32,6 @@ var frameRate,
     //mode = METRONOMIC_INTERVALS,
     //mode = FORM, // WRONG: Form mode doesn't work
     STRUCTURE_TYPE_TO_DISPLAY = MODAL_CHORDS, // can be MODAL_CHORDS, TRIADS, or VOICINGS
-    bVoicingsHaveRoots = false, // if STRUCTURE_TYPE_TO_DISPLAY is VOICINGS, then this will decide whether a root is attached to the voicing
     formModeRepeats = 2, // NOT WORKING: no form functionality
     formModeChoruses = 50,  // NOT WORKING: no form functionality
     frameCounter = 1,
@@ -42,23 +40,23 @@ var frameRate,
     blankLines = subdivisionsPerMeasure * measuresPerChord - 1,
     bpm = 38,
     chordCounter = 1, // not 100% sure, but pretty sure this is used for the program to keep track of something--not to be changed manually
-    numberOfItemsToDisplayPerButtonPress = 12,
+    numberOfItemsToDisplayPerButtonPress = 12, // doesn't do anything if "bDisplayEntireList" is "true."
     noKeyPressUntil = Date.now(),   //used to prevent accidental multiple key presses from the key being momentarily held down
     randomizedChordsList,
     incrementalIndex = 0, // used for BUTTON_PRESS_INCREMENT_LIST mode. Should probably be an object property instead of a global var.
     currentList,
-    bDisplayEntireList = true; //if true, will display entire "currentList"
+    bDisplayEntireList = false; //if true, will display entire "currentList"
     
 
 //randomizedChordsList = makeRandomizedChordsList(['mm', 'hmin', /*'church',*/  'hMaj', 'oct', '7sus4', /*'whol',*/ 'Maj7sus2', '7sus2'/*, 'hex'*/]);    //valid entries are: 'mm', 'hmin', 'hMaj', 'church', '7sus4', 'oct', 'hex', 'whol', 'Maj7sus2', '7sus2'
 //randomizedChordsList = makeRandomizedChordsList(['mm', 'hmin', 'hMaj', 'oct']);
 if (STRUCTURE_TYPE_TO_DISPLAY === MODAL_CHORDS) randomizedChordsList = makeRandomizedChordsList(['mm', 'hmin', 'hMaj', 'oct', 'church']);
 if (STRUCTURE_TYPE_TO_DISPLAY === VOICINGS) randomizedChordsList = makeRandomizedVoicingsList(
-    /*b9x3x7*/true,
+    /*b9x3x7*/true, //i.e. display 9 3 7 voicings
     /*b13x7x3*/true,
-    /*7x3x13x9*/false,
+    /*7x3x13x9*/true,
     /*reverse display order of chord tones*/false,
-    bVoicingsHaveRoots,
+    /*add roots*/false,
     /*display scale degrees instead of chord tones (i.e. "6" rather than "13")*/ false
 ); // note "x"s in parameters just separate chord tones. NOTE: should maybe have a more-fluid way of saying what sort of voicings you want, and what order you want the chord tones in, and whether it's ascending or descending
 if (STRUCTURE_TYPE_TO_DISPLAY === TRIADS) randomizedChordsList = makeRandomizedTriadsList(); //WRONG this should be like the makeRandomizedChordsList function, wherein individual types of triads can be selected
@@ -372,7 +370,22 @@ function makeRandomizedVoicingsList(b9x3x7, b13x7x3, b7x3x13x9, reverseOrderOfCh
     }
     if (b7x3x13x9) {
         voicings.push(
-            
+            ['7', '3', '13', '9'],
+            ['7', '3', 'b13', '9'],
+            ['7', '3', '13', '#9'],
+            ['7', '3', 'b13', '#9'],
+            ['7', 'b3', '13', '9'],
+            ['7', 'b3', 'b13', '9'],
+            ['b7', '3', '13', '9'],
+            ['b7', '3', 'b13', '9'],
+            ['b7', '3', '13', 'b9'],
+            ['b7', '3', 'b13', 'b9'],
+            ['b7', '3', '13', '#9'],
+            ['b7', '3', 'b13', '#9'],
+            ['b7', 'b3', '13', '9'],
+            ['b7', 'b3', 'b13', '9'],
+            ['b7', 'b3', '13', 'b9'],
+            ['b7', 'b3', 'b13', 'b9']
         );
     }
     //WRONG? Is this stupid? Should you just read right to left?
