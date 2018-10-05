@@ -23,34 +23,47 @@ var BUTTON_PRESS_INCREMENTS_LIST = 'pressing the space bar displays the next ite
 var BUTTON_PRESS_RANDOM_ITEMS = 'pressing the space bar displays a random item from the list'; // needs HTML
 var FORM = "scroll procedurally generated forms";
 var SPACE_BAR = 32;
+var TRIADS = 'Triads will be displayed';
+var MODAL_CHORDS = 'Modal chords will be displayed';
+var VOICINGS = 'Voicings will be displayed';
 
 // maybe make these vars properties of an object called "values" or something in order to make them private?
 var frameRate,
     mode = BUTTON_PRESS_RANDOM_ITEMS,
     //mode = METRONOMIC_INTERVALS,
-    //mode = FORM, // WRONG: Form mode doesn't really work
-    //bTriads = true,
-    bTriads = false,
-    formModeRepeats = 2,
-    formModeChoruses = 50,
+    //mode = FORM, // WRONG: Form mode doesn't work
+    STRUCTURE_TYPE_TO_DISPLAY = MODAL_CHORDS, // can be MODAL_CHORDS, TRIADS, or VOICINGS
+    bVoicingsHaveRoots = false, // if STRUCTURE_TYPE_TO_DISPLAY is VOICINGS, then this will decide whether a root is attached to the voicing
+    formModeRepeats = 2, // NOT WORKING: no form functionality
+    formModeChoruses = 50,  // NOT WORKING: no form functionality
     frameCounter = 1,
-    subdivisionsPerMeasure = 1,
-    measuresPerChord = 2,
+    subdivisionsPerMeasure = 3,
+    measuresPerChord = 1,
     blankLines = subdivisionsPerMeasure * measuresPerChord - 1,
-    bpm = 145,
-    chordCounter = 1,
-    itemsToDisplayPerButtonPress = 12,
-    noKeyPressUntil = Date.now(),
+    bpm = 38,
+    chordCounter = 1, // not 100% sure, but pretty sure this is used for the program to keep track of something--not to be changed manually
+    numberOfItemsToDisplayPerButtonPress = 12,
+    noKeyPressUntil = Date.now(),   //used to prevent accidental multiple key presses from the key being momentarily held down
     randomizedChordsList,
     incrementalIndex = 0, // used for BUTTON_PRESS_INCREMENT_LIST mode. Should probably be an object property instead of a global var.
-    currentList;
+    currentList,
+    bDisplayEntireList = true; //if true, will display entire "currentList"
     
 
 //randomizedChordsList = makeRandomizedChordsList(['mm', 'hmin', /*'church',*/  'hMaj', 'oct', '7sus4', /*'whol',*/ 'Maj7sus2', '7sus2'/*, 'hex'*/]);    //valid entries are: 'mm', 'hmin', 'hMaj', 'church', '7sus4', 'oct', 'hex', 'whol', 'Maj7sus2', '7sus2'
 //randomizedChordsList = makeRandomizedChordsList(['mm', 'hmin', 'hMaj', 'oct']);
-if (!bTriads) randomizedChordsList = makeRandomizedChordsList(['mm', 'hmin', 'hMaj', 'oct', 'church']);
-else randomizedChordsList = makeRandomTriadsList();
+if (STRUCTURE_TYPE_TO_DISPLAY === MODAL_CHORDS) randomizedChordsList = makeRandomizedChordsList(['mm', 'hmin', 'hMaj', 'oct', 'church']);
+if (STRUCTURE_TYPE_TO_DISPLAY === VOICINGS) randomizedChordsList = makeRandomizedVoicingsList(
+    /*b9x3x7*/true,
+    /*b13x7x3*/true,
+    /*7x3x13x9*/false,
+    /*reverse display order of chord tones*/false,
+    bVoicingsHaveRoots,
+    /*display scale degrees instead of chord tones (i.e. "6" rather than "13")*/ false
+); // note "x"s in parameters just separate chord tones. NOTE: should maybe have a more-fluid way of saying what sort of voicings you want, and what order you want the chord tones in, and whether it's ascending or descending
+if (STRUCTURE_TYPE_TO_DISPLAY === TRIADS) randomizedChordsList = makeRandomizedTriadsList(); //WRONG this should be like the makeRandomizedChordsList function, wherein individual types of triads can be selected
 currentList = randomizedChordsList;
+if (bDisplayEntireList) numberOfItemsToDisplayPerButtonPress = currentList.length;
 
 // these three lines below here were just to make sure that the randomizing process wasn't changing the lenght of the array, which happened in another program I made that used similar code and had that problem
 //chordsList = makeChordsList(['church', 'hmin', 'mm', 'hMaj']);
@@ -67,7 +80,7 @@ if (mode === METRONOMIC_INTERVALS) frameRate = setInterval(mainLoop, bpmToMs(bpm
 if (mode === LIST_WITH_SPACES) displayListWithBlankLinesBetweenItems(randomizedChordsList, blankLines);
 
 
-//NONE OF THIS FORM STUFF IS REALLY WORKING:
+//WRONG: NONE OF THIS FORM STUFF IS WORKING:
 ///////////////////////////////////////////////
 // FORM STUFF
 // WRONG
@@ -124,7 +137,7 @@ function mainLoop() {
     //X's will show up at the beginning of every measure that doesn't start with a new chord,
     //      and "-"s will show up every beat that contains neither a new chord nor the beginning of a measure.
     if ((frameCounter - 1) % (subdivisionsPerMeasure * measuresPerChord) === 0) {
-        console.log(randomizedChordsList[chordCounter - 1] + ' ' + chordCounter);
+        console.log(randomizedChordsList[chordCounter - 1] + ' (' + chordCounter + ')');
         chordCounter++;
     }
     if ((frameCounter - 1) % (subdivisionsPerMeasure * measuresPerChord) !== 0 && (frameCounter - 1) % subdivisionsPerMeasure === 0) {
@@ -162,14 +175,14 @@ if (mode === BUTTON_PRESS_INCREMENTS_LIST || mode === BUTTON_PRESS_RANDOM_ITEMS)
             else {
                 if (event.which == SPACE_BAR && mode === BUTTON_PRESS_INCREMENTS_LIST) {
                     if (!currentList) console.log('Empty or invalid list!');
-                    else for (var i = 0; i < itemsToDisplayPerButtonPress; i++) {
+                    else for (var i = 0; i < numberOfItemsToDisplayPerButtonPress; i++) {
                         listToDisplay.push(currentList[incrementalIndex + i]);
                     }
-                    incrementalIndex += itemsToDisplayPerButtonPress;
+                    incrementalIndex += numberOfItemsToDisplayPerButtonPress;
                 }
                 if (event.which == SPACE_BAR && mode === BUTTON_PRESS_RANDOM_ITEMS) {
                     if (!currentList) console.log('Empty or invalid list!');
-                    else for (var j = 0; j < itemsToDisplayPerButtonPress; j++) {
+                    else for (var j = 0; j < numberOfItemsToDisplayPerButtonPress; j++) { // repeat this loop for as many times as items should be displayed per button press
                         var randomIndex = Math.round(Math.random() * (currentList.length - 1));
                         listToDisplay.push(currentList[randomIndex]);
                     }
@@ -293,7 +306,9 @@ function make7sus2ChordQualitiesList() {
     return ['7sus2 #11'];
 }
 
-function makeRandomTriadsList() {
+function makeRandomizedTriadsList() {
+    // WRONG this function should be passed an arrayOfTriadQualities and only return triads of those qualities.
+        // Should it be passed an array of inversions as well?
     var qualities = [
         'Maj',
         'Maj/3',
@@ -324,6 +339,81 @@ function makeRandomTriadsList() {
         }
     }
     return randomizeOrderOfArrayItems(chords);
+}
+
+//WRONG: it should be an option to generate a voicing *along with* modally-generated chords
+function makeRandomizedVoicingsList(b9x3x7, b13x7x3, b7x3x13x9, reverseOrderOfChordTones, bAddRoots, scaleDegreesInsteadOfChordTones) {
+    //WRONG Should make these arrays, partially so that they can easily have their order reversed
+    var roots = makeRootsList();
+    var voicings = [];
+    var finalList = [];
+    if (b9x3x7) {
+        voicings.push(
+            ['9', '3', '7'],
+            ['9', 'b3', '7'],
+            ['#9', '3', '7'],
+            ['b9', '3', 'b7'],
+            ['#9', '3', 'b7'],
+            ['9', 'b3', 'b7'],
+            ['b9', 'b3', 'b7']
+        );
+    }
+    if (b13x7x3) {
+        voicings.push (
+            ['13', '7', '3'],
+            ['13', '7', 'b3'],
+            ['13', 'b7', '3'],
+            ['13', 'b7', 'b3'],
+            ['b13', '7', '3'],
+            ['b13', '7', 'b3'],
+            ['b13', 'b7', '3'],
+            ['b13', 'b7', 'b3']
+        );
+    }
+    if (b7x3x13x9) {
+        voicings.push(
+            
+        );
+    }
+    //WRONG? Is this stupid? Should you just read right to left?
+    if (reverseOrderOfChordTones) {
+        // i.e. [9, 3, 7] becomes [7, 3, 9]
+        for (let i = 0; i < voicings.length; i++) {
+            var newVoicingOrder = [];
+            for (let k = 0; k < voicings[i].length; k++) {
+                newVoicingOrder.push(
+                    voicings[i][voicings[i].length - 1 - k]
+                );
+            }
+            voicings[i] = newVoicingOrder;
+        }
+    }
+    if (scaleDegreesInsteadOfChordTones) {
+        // i.e. 9 becomes 2, 13 becomes 6, etc.
+        for (let i = 0; i < voicings.length; i++) {
+            for (let k = 0; k < voicings[i].length; k++) {
+                // WRONG? With a little bit of hunting inside the strings, I could just replace the number,
+                    // and not do a line for each accidental
+                if (voicings[i][k] === '9') voicings[i][k] = '2';
+                if (voicings[i][k] === 'b9') voicings[i][k] = 'b2';
+                if (voicings[i][k] === '#9') voicings[i][k] = '#2';
+                if (voicings[i][k] === '13') voicings[i][k] = '6';
+                if (voicings[i][k] === 'b13') voicings[i][k] = 'b6';
+                if (voicings[i][k] === '11') voicings[i][k] = '4';
+                if (voicings[i][k] === '#11') voicings[i][k] = '#4';
+            }
+        }
+    }
+    if (bAddRoots) {
+        for (let i = 0; i < roots.length; i++) {
+            for (let k = 0; k < qualities.length; k++) {
+                finalList.push(
+                    roots[i] + ' ' + voicings[k]
+                );
+            }
+        }
+    } else finalList = voicings;
+    return randomizeOrderOfArrayItems(finalList);
 }
 
 function makeRootsList() {
