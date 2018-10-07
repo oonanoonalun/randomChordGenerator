@@ -74,6 +74,10 @@ if (STRUCTURE_TYPE_TO_DISPLAY === VOICINGS) randomizedChordsList = makeRandomize
     true,
     /*3x13x9*/
     true,
+    /*3x13x7*/
+    true,
+    /*7x9x3*/
+    true,
     /*7x3x13x9*/
     false,
     /*reverse display order of chord tones*/
@@ -365,7 +369,7 @@ function makeRandomizedTriadsList() {
 }
 
 //WRONG: it should be an option to generate a voicing *along with* modally-generated chords
-function makeRandomizedVoicingsList(b9x3x7, b13x7x3, b7x3x13, b7x9x13, b3x7x9, b3x13x9, b7x3x13x9, reverseOrderOfChordTones, bAddRoots, scaleDegreesInsteadOfChordTones) {
+function makeRandomizedVoicingsList(b9x3x7, b13x7x3, b7x3x13, b7x9x13, b3x7x9, b3x13x9, b3x13x7, b7x9x3, b7x3x13x9, reverseOrderOfChordTones, bAddRoots, scaleDegreesInsteadOfChordTones) {
     //WRONG Should make these arrays, partially so that they can easily have their order reversed
     var roots = makeRootsList();
     var voicings = [];
@@ -463,6 +467,30 @@ function makeRandomizedVoicingsList(b9x3x7, b13x7x3, b7x3x13, b7x9x13, b3x7x9, b
             ['b3', '13', 'b9'],
             ['b3', 'b13', '9'],
             ['b3', 'b13', 'b9']
+        );
+    }
+    if (b3x13x7) {
+        voicings.push(
+            ['3', '13', '7'],
+            ['3', '13', 'b7'],
+            ['3', 'b13', '7'],
+            ['3', 'b13', 'b7'],
+            ['b3', '13', '7'],
+            ['b3', '13', 'b7'],
+            ['b3', 'b13', '7'],
+            ['b3', 'b13', 'b7']
+        );
+    }
+    if (b7x9x3) {
+        voicings.push(
+            ['7', '9', '3'],
+            ['7', '9', 'b3'],
+            ['7', '#9', '3'],
+            ['b7', '9', '3'],
+            ['b7', '9', 'b3'],
+            ['b7', 'b9', '3'],
+            ['b7', 'b9', 'b3'],
+            ['b7', '#9', '3']
         );
     }
     //WRONG? Is this stupid? Should you just read right to left?
