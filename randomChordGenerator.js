@@ -45,21 +45,46 @@ var frameRate,
     randomizedChordsList,
     incrementalIndex = 0, // used for BUTTON_PRESS_INCREMENT_LIST mode. Should probably be an object property instead of a global var.
     currentList,
-    bDisplayEntireList = false; //if true, will display entire "currentList"
+    bDisplayEntireList = true; //if true, will display entire "currentList"
     
 
 //randomizedChordsList = makeRandomizedChordsList(['mm', 'hmin', /*'church',*/  'hMaj', 'oct', '7sus4', /*'whol',*/ 'Maj7sus2', '7sus2'/*, 'hex'*/]);    //valid entries are: 'mm', 'hmin', 'hMaj', 'church', '7sus4', 'oct', 'hex', 'whol', 'Maj7sus2', '7sus2'
 //randomizedChordsList = makeRandomizedChordsList(['mm', 'hmin', 'hMaj', 'oct']);
-if (STRUCTURE_TYPE_TO_DISPLAY === MODAL_CHORDS) randomizedChordsList = makeRandomizedChordsList(['mm', 'hmin', 'hMaj', 'oct', 'church']);
+if (STRUCTURE_TYPE_TO_DISPLAY === MODAL_CHORDS) randomizedChordsList = makeRandomizedChordsList([
+    'mm',
+    'hmin',
+    'hMaj',
+    'oct',
+    'church'
+]);
 if (STRUCTURE_TYPE_TO_DISPLAY === VOICINGS) randomizedChordsList = makeRandomizedVoicingsList(
-    /*b9x3x7*/true, //i.e. display 9 3 7 voicings
-    /*b13x7x3*/true,
-    /*7x3x13x9*/true,
-    /*reverse display order of chord tones*/false,
-    /*add roots*/false,
-    /*display scale degrees instead of chord tones (i.e. "6" rather than "13")*/ false
+    //NOTE: could do these like MODAL_CHORDS is done, passing an array of strings to the
+    //  generating function, and the function iterating through them looking for matches.
+    //  This would avoid this awkward system of comments+boolean arguments. But as it is,
+    //  (with the boolean arguments) jibes more directly with a checkbox system.
+    /*9x3x7*/ //i.e. display 9 3 7 voicings
+    true,
+    /*13x7x3*/
+    true,
+    /*7x3x13*/
+    true,
+    /*7x9x13*/
+    true,
+    /*3x7x9*/
+    true,
+    /*3x13x9*/
+    true,
+    /*7x3x13x9*/
+    false,
+    /*reverse display order of chord tones*/
+    false,
+    /*add roots*/
+    false,
+    /*display scale degrees instead of chord tones (i.e. "6" rather than "13")*/
+    false
 ); // note "x"s in parameters just separate chord tones. NOTE: should maybe have a more-fluid way of saying what sort of voicings you want, and what order you want the chord tones in, and whether it's ascending or descending
 if (STRUCTURE_TYPE_TO_DISPLAY === TRIADS) randomizedChordsList = makeRandomizedTriadsList(); //WRONG this should be like the makeRandomizedChordsList function, wherein individual types of triads can be selected
+
 currentList = randomizedChordsList;
 if (bDisplayEntireList) numberOfItemsToDisplayPerButtonPress = currentList.length;
 
@@ -340,7 +365,7 @@ function makeRandomizedTriadsList() {
 }
 
 //WRONG: it should be an option to generate a voicing *along with* modally-generated chords
-function makeRandomizedVoicingsList(b9x3x7, b13x7x3, b7x3x13x9, reverseOrderOfChordTones, bAddRoots, scaleDegreesInsteadOfChordTones) {
+function makeRandomizedVoicingsList(b9x3x7, b13x7x3, b7x3x13, b7x9x13, b3x7x9, b3x13x9, b7x3x13x9, reverseOrderOfChordTones, bAddRoots, scaleDegreesInsteadOfChordTones) {
     //WRONG Should make these arrays, partially so that they can easily have their order reversed
     var roots = makeRootsList();
     var voicings = [];
@@ -386,6 +411,58 @@ function makeRandomizedVoicingsList(b9x3x7, b13x7x3, b7x3x13x9, reverseOrderOfCh
             ['b7', 'b3', 'b13', '9'],
             ['b7', 'b3', '13', 'b9'],
             ['b7', 'b3', 'b13', 'b9']
+        );
+    }
+    if (b7x3x13) {
+        voicings.push(
+            ['7', '3', '13'],
+            ['7', '3', 'b13'],
+            ['7', 'b3', '13'],
+            ['7', '3', 'b13'],
+            ['b7', '3', '13'],
+            ['b7', '3', 'b13'],
+            ['b7', 'b3', '13'],
+            ['b7', 'b3', 'b13']
+        );
+    }
+    if (b7x9x13) {
+        voicings.push(
+            ['7', '9', '13'],
+            ['7', '9', 'b13'],
+            ['7', '#9', '13'],
+            ['7', '#9', 'b13'], // hexatonic
+            ['b7', '9', '13'],
+            ['b7', '9', 'b13'],
+            ['b7', 'b9', '13'],
+            ['b7', 'b9', 'b13'],
+            ['b7', '#9', '13'],
+            ['b7', '#9', 'b13']
+        );
+    }
+    if (b3x7x9) {
+        voicings.push(
+            ['3', '7', '9'],
+            ['3', '7', '#9'],
+            ['3', 'b7', '9'],
+            ['3', 'b7', 'b9'],
+            ['3', 'b7', '#9'],
+            ['b3', '7', '9'],
+            ['b3', 'b7', '9'],
+            ['b3', 'b7', 'b9']
+        );
+    }
+    if (b3x13x9) {
+        voicings.push(
+            ['3', '13', '9'],
+            ['3', '13', 'b9'],
+            ['3', '13', '#9'],
+            ['3', 'b13', '9'],
+            ['3', 'b13', 'b9'],
+            ['3', 'b13', '#9'],
+            ['b3', '13', '9'],
+            ['b3', '13', 'b9'],
+            ['b3', 'b13', '9'],
+            ['b3', 'b13', 'b9']
         );
     }
     //WRONG? Is this stupid? Should you just read right to left?
